@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+@import "@fontsource/jetbrains-mono/300.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "@fontsource/jetbrains-mono/800.css";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+
+@theme {
+  /* Sampled from the printed card art and the coralize-app render, so the
+     site and the physical cards read as one system. */
+  --color-paper: #f2f6ff; /* page ground — the card's off-white */
+  --color-paper-2: #e6eefc; /* recessed bands */
+  --color-surface: #ffffff;
+
+  --color-ink: #0c1848; /* body/display text */
+  --color-ink-soft: #40518a;
+
+  --color-electric: #0030c0; /* the vivid blue of the card art */
+  --color-reef-blue: #032c8f;
+  --color-deep-ocean: #081a49;
+  --color-bio-cyan: #b6fafe;
+  --color-sky: #90cce4;
+
+  --color-coral: #f2685f; /* ACTIVITY accent — the Drupella red */
+  --color-coral-soft: #ffb59f;
+  --color-foam: #f0f8ff;
+  --color-bone: #ece4d8;
+  --color-near-black: #191919;
+
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  overscroll-behavior: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-electric);
+  color: #fff;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.display-xl {
+  font-family: var(--font-display);
+  line-height: 0.94;
+  letter-spacing: -0.026em;
+}
+
+.coral-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.coral-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.coral-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-electric) 22%, transparent);
+  border-radius: 999px;
+}
+.coral-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-electric) 38%, transparent);
+}
+
+/* Very light paper grain — on a bright layout this keeps large flat fills
+   from looking like untextured screen white. Much subtler than on dark. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Soft-UI card surface, echoing the rounded blue-bordered printed cards. */
+.card-surface {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-electric) 10%, transparent);
+  box-shadow:
+    0 1px 2px rgba(12, 24, 72, 0.04),
+    0 12px 32px -12px rgba(12, 24, 72, 0.14);
+}
+
+.card-surface-lift {
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-surface-lift:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 2px 4px rgba(12, 24, 72, 0.05),
+    0 28px 56px -16px rgba(3, 44, 143, 0.26);
+}
+
+.hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-electric) 16%, transparent) 22%,
+    color-mix(in srgb, var(--color-electric) 16%, transparent) 78%,
+    transparent
+  );
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+}
+
+/* Unattended kiosk: park the pointer out of sight once nobody is using it. */
+body.cursor-idle,
+body.cursor-idle * {
+  cursor: none !important;
+}
+
+/* Spotlight: the show walks a highlight through the items on a slide. */
+.spot {
+  transition:
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.65s ease;
+}
+.spot[data-spot="dim"] {
+  opacity: 0.55;
+}
+.spot[data-spot="on"] {
+  transform: translateY(-10px) scale(1.02);
+}
+
+/* ── Flip card ────────────────────────────────────────────────────────
+   Driven purely by CSS :hover / :focus-visible. An earlier version toggled
+   React state on both click and hover, so a click left the card's state and
+   the pointer's state disagreeing — that was the flicker. No JS state now,
+   so the two can't desync. */
+.flip {
+  perspective: 1800px;
+  --flip-rot: 0deg;
+}
+.flip-inner {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transform: rotateY(var(--flip-rot));
+  transition: transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+/* `data-flip` lets the auto-playing show turn a card over on its own; hover
+   still works identically. Both resolve to the same custom property, so they
+   can never fight each other the way the old click+hover state did. */
+.flip:hover,
+.flip:focus-visible,
+.flip[data-flip="on"] {
+  --flip-rot: 180deg;
+}
+.flip[data-resting="back"] {
+  --flip-rot: 180deg;
+}
+.flip[data-resting="back"]:hover,
+.flip[data-resting="back"]:focus-visible,
+.flip[data-resting="back"][data-flip="on"] {
+  --flip-rot: 360deg;
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Own compositing layer per face — without this the two faces can z-fight
+     mid-rotation and the card appears to tear. */
+  transform: translateZ(0.01px);
+}
+.flip-face--back {
+  transform: rotateY(180deg) translateZ(0.01px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,25 @@
+# Cloudflare Pages headers.
+# Hashed build assets are immutable; media is large and rarely changes, so
+# cache it hard too — the kiosk should never re-download 45MB mid-exhibition.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/models/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/parallax/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/cards/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/photos/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/video/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

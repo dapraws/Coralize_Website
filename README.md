@@ -1,5 +1,7 @@
 <div align="center">
 
+![Coralize](docs/screens/01-hero.jpg)
+
 # Coralize
 
 **An augmented-reality field guide to coral reefs, by team Biorookie.**
@@ -10,20 +12,20 @@
 
 Coralize turns printed postcards into 3D coral in augmented reality. This is the website that goes with the iOS app: an introduction to the app and its cards, an interactive 3D coral encyclopedia, and a tribute to Biorock Indonesia.
 
+<p align="center">
+  <img src="docs/demo.gif" width="70%" alt="3D coral encyclopedia">
+</p>
+
 <table>
   <tr>
-    <td width="25%"><img src="docs/screens/01-hero.jpg" alt="Hero"></td>
-    <td width="25%"><img src="docs/screens/02-cards.jpg" alt="Cards"></td>
-    <td width="25%"><img src="docs/screens/03-encyclopedia.jpg" alt="3D Encyclopedia"></td>
-    <td width="25%"><img src="docs/screens/04-biorock.jpg" alt="Biorock"></td>
+    <td width="36%"><img src="docs/screens/02-cards.jpg" alt="Cards"></td>
+    <td width="36%"><img src="docs/screens/04-biorock.jpg" alt="Biorock"></td>
+    <td width="28%" align="center">
+      <img src="docs/screens/m1-hero.jpg" width="62" alt="Mobile hero">
+      <img src="docs/screens/m2-encyclopedia.jpg" width="62" alt="Mobile encyclopedia">
+    </td>
   </tr>
 </table>
-
-<p align="center">
-  <img src="docs/screens/m1-hero.jpg" width="110" alt="Mobile hero">
-  &nbsp;
-  <img src="docs/screens/m2-encyclopedia.jpg" width="110" alt="Mobile encyclopedia">
-</p>
 
 ---
 

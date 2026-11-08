@@ -203,6 +203,20 @@ body.cursor-idle * {
   transform: rotateY(180deg) translateZ(0.01px);
 }
 
+/* Hero reef plates on phones: sized by height (--h), whole and uncropped,
+   centred and always wider than the viewport by more than their parallax
+   range, so no plate edge can slide into view. Not centred with translate:
+   GSAP owns these elements' transforms and resets the `translate` property. */
+@media (max-width: 899px) {
+  .reef-plate-mobile {
+    --w: max(100cqw + 160px, var(--h) * 1672 / 941);
+    width: var(--w);
+    max-width: none;
+    left: calc(50% - var(--w) / 2);
+    right: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

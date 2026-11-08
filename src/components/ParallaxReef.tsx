@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { FishSchool } from "./FishSchool";
 
 /**
  * Vivid layered reef for the hero.
@@ -22,6 +23,8 @@ type Layer = {
   depth: number;
   className: string;
   style?: React.CSSProperties;
+  /** Render the swimming FishSchool instead of a static plate. */
+  fish?: true;
 };
 
 const LAYERS: Layer[] = [
@@ -39,21 +42,31 @@ const LAYERS: Layer[] = [
   {
     src: "/parallax/coral-midground.webp",
     depth: 20,
-    className: "inset-x-0 bottom-0 w-full object-contain object-bottom",
-    style: { opacity: 0.85 },
+    // Phones: a 16:9 plate at full width is only ~22% of a portrait hero, so
+    // the reef sat as a thin strip at the very bottom. Below 900px the plate
+    // is sized by height instead, whole and uncropped, centred and bleeding
+    // far past both sides of the viewport. object-cover was tried and
+    // rejected: its box was only viewport-wide, so parallax slid the cut edge
+    // into view. See `.reef-plate-mobile` in index.css; `--h` is the height.
+    className:
+      "inset-x-0 bottom-0 w-full object-contain object-bottom reef-plate-mobile",
+    style: { opacity: 0.85, ["--h" as string]: "62cqh" },
   },
   {
     src: "/parallax/coral-reef-a.webp",
     depth: 34,
-    className: "inset-x-0 bottom-0 w-full object-contain object-bottom",
+    className:
+      "inset-x-0 bottom-0 w-full object-contain object-bottom reef-plate-mobile",
+    style: { ["--h" as string]: "52cqh" },
   },
   {
     src: "/parallax/fish.webp",
     depth: 50,
+    fish: true,
     // Same treatment as the foreground corners: bleed the layer past both
     // edges so the fish that would have been sliced by the viewport sit
     // off-screen instead. The bleed exceeds this layer's own pan range.
-    className: "inset-y-0 h-full object-cover",
+    className: "inset-y-0 h-full",
     style: {
       opacity: 0.95,
       left: "calc(-1 * max(8%, 150px))",
@@ -79,7 +92,7 @@ const LAYERS: Layer[] = [
   {
     src: "/parallax/coral-foreground-a-left-v2.webp",
     depth: 76,
-    className: "w-[74%] object-contain object-left-bottom",
+    className: "w-[74%] object-contain object-left-bottom max-[899px]:w-[130%]",
     style: {
       transformOrigin: "bottom left",
       // The bleed must always exceed this layer's own pan range (`depth` px),
@@ -92,7 +105,7 @@ const LAYERS: Layer[] = [
   {
     src: "/parallax/coral-foreground-a-right-v2.webp",
     depth: 82,
-    className: "w-[74%] object-contain object-right-bottom",
+    className: "w-[74%] object-contain object-right-bottom max-[899px]:w-[130%]",
     style: {
       transformOrigin: "bottom right",
       right: "calc(-1 * max(10%, 170px))",
@@ -102,7 +115,7 @@ const LAYERS: Layer[] = [
 ];
 
 export function ParallaxReef() {
-  const layerRefs = useRef<HTMLImageElement[]>([]);
+  const layerRefs = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -145,22 +158,32 @@ export function ParallaxReef() {
   }, []);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0b3f6b]">
-      {LAYERS.map((l, i) => (
-        <img
-          key={l.src}
-          ref={(el) => {
-            if (el) layerRefs.current[i] = el;
-          }}
-          src={l.src}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          // Just enough overscan to cover the parallax offset — nothing more.
-          className={`absolute scale-[1.06] will-change-transform ${l.className}`}
-          style={l.style}
-        />
-      ))}
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0b3f6b]"
+      // A size container so `.reef-plate-mobile` can size plates off its height.
+      style={{ containerType: "size" }}
+    >
+      {LAYERS.map((l, i) => {
+        const ref = (el: HTMLElement | null) => {
+          if (el) layerRefs.current[i] = el;
+        };
+        // Just enough overscan to cover the parallax offset — nothing more.
+        const className = `absolute scale-[1.06] will-change-transform ${l.className}`;
+        return l.fish ? (
+          <FishSchool key={l.src} ref={ref} className={className} style={l.style} />
+        ) : (
+          <img
+            key={l.src}
+            ref={ref}
+            src={l.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className={className}
+            style={l.style}
+          />
+        );
+      })}
     </div>
   );
 }

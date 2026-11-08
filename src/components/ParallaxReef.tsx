@@ -5,122 +5,85 @@ import { FishSchool } from "./FishSchool";
 /**
  * Vivid layered reef for the hero.
  *
- * An earlier version washed these plates with a near-opaque paper overlay and
- * desaturating filters so ink-blue text would read on top. That drained the
- * colour out of them and looked bad. The plates now run at **full saturation,
- * unfiltered** — the way the source art looks — and legibility is solved the
- * other way round: the copy on this slide is white, over a dark gradient that
- * only covers the text, not the scene.
+ * The plates run at **full saturation, unfiltered** — the way the source art
+ * looks. An earlier version washed them under a paper overlay so ink text
+ * could sit on top; it drained the colour. Legibility is solved by the copy's
+ * own dark scrim instead.
  *
- * They are also no longer blown up. Each plate sits at its natural scale with
- * only a small amount of overscan for the parallax offset; over-scaling a
- * 1672px plate across a 2560px kiosk made it soft and oversized.
+ * Composition follows the reference art (`Media/coral-wallpaper.png`,
+ * `coral-vibrant.png`): open water across the top, a distant ridge low on the
+ * horizon, reef islands framing the two sides, and a clear corridor down the
+ * middle where the copy sits. An earlier version stacked every piece in the
+ * centre at near the same scale — the islands hid the ridge, the corners
+ * overlapped each other, and with no open water there was no depth to read,
+ * so the parallax felt like flat cards sliding about.
+ *
+ * Depth comes from three cues, not one:
+ * - **scale** — far pieces are drawn smaller (the ridge, the far fish band),
+ * - **occlusion** — small fish swim *behind* the islands, big ones in front,
+ * - **motion** — one camera: every layer drifts in the same direction, by an
+ *   amount set by its `depth`. Giving each layer its own drift phase made
+ *   them slide against each other, which read as forced, not as depth.
+ *
+ * Placement lives in `.reef-*` classes in index.css (kiosk + phone).
+ * Bleed rule: a plate whose art runs to its own edge (ridge, corners) must
+ * bleed past the viewport by more than its pan range, or a hard cut slides
+ * into view. The islands have natural edges and need no bleed. Never crop a
+ * plate with object-cover to make it fit — enlarge it whole and bleed.
  */
 
 type Layer = {
-  src: string;
+  key: string;
   /** Pointer response, px at full deflection. Higher = nearer the camera. */
   depth: number;
   className: string;
-  style?: React.CSSProperties;
-  /** Render the swimming FishSchool instead of a static plate. */
-  fish?: true;
+  src?: string;
+  /** Render a swimming FishSchool band instead of a static plate. */
+  fish?: "near" | "far";
 };
 
 const LAYERS: Layer[] = [
   {
+    key: "ocean",
     src: "/parallax/ocean-background.webp",
-    depth: 5,
-    className: "inset-0 h-full w-full object-cover",
+    depth: 4,
+    className: "inset-0 h-full w-full scale-[1.04] object-cover",
   },
   {
+    key: "rays",
     src: "/parallax/light-rays.webp",
-    depth: 11,
-    className: "inset-x-0 top-0 h-[78%] w-full object-cover",
-    style: { mixBlendMode: "screen", opacity: 0.9 },
+    depth: 9,
+    className: "reef-rays",
   },
-  {
-    src: "/parallax/coral-midground.webp",
-    depth: 20,
-    // Phones: a 16:9 plate at full width is only ~22% of a portrait hero, so
-    // the reef sat as a thin strip at the very bottom. Below 900px the plate
-    // is sized by height instead, whole and uncropped, centred and bleeding
-    // far past both sides of the viewport. object-cover was tried and
-    // rejected: its box was only viewport-wide, so parallax slid the cut edge
-    // into view. See `.reef-plate-mobile` in index.css; `--h` is the height.
-    className:
-      "inset-x-0 bottom-0 w-full object-contain object-bottom reef-plate-mobile",
-    style: { opacity: 0.85, ["--h" as string]: "62cqh" },
-  },
-  {
-    src: "/parallax/coral-reef-a.webp",
-    depth: 34,
-    className:
-      "inset-x-0 bottom-0 w-full object-contain object-bottom reef-plate-mobile",
-    style: { ["--h" as string]: "52cqh" },
-  },
-  {
-    src: "/parallax/fish.webp",
-    depth: 50,
-    fish: true,
-    // Same treatment as the foreground corners: bleed the layer past both
-    // edges so the fish that would have been sliced by the viewport sit
-    // off-screen instead. The bleed exceeds this layer's own pan range.
-    className: "inset-y-0 h-full",
-    style: {
-      opacity: 0.95,
-      left: "calc(-1 * max(8%, 150px))",
-      // An absolutely positioned <img> with `width: auto` resolves to its
-      // intrinsic width, so left+right alone will NOT stretch it — the width
-      // has to be stated explicitly.
-      width: "calc(100% + 2 * max(8%, 150px))",
-      maxWidth: "none",
-    },
-  },
+  { key: "ridge", src: "/parallax/coral-midground.webp", depth: 16, className: "reef-ridge" },
+  { key: "fish-far", fish: "far", depth: 24, className: "reef-fish" },
+  { key: "island-l", src: "/parallax/coral-reef-b.webp", depth: 34, className: "reef-island-l" },
+  { key: "island-r", src: "/parallax/coral-reef-a.webp", depth: 38, className: "reef-island-r" },
+  { key: "fish-near", fish: "near", depth: 56, className: "reef-fish" },
   // Foreground is two corner pieces, not one full-width plate — a single
   // plate stretched across the viewport shows its own cropped edges as hard
-  // vertical cuts.
-  //
-  // NOTE the `-v2` filenames. `public/_headers` caches /parallax/* immutably
-  // for a year, so re-keying these while keeping the same name left every
-  // browser that had already loaded the old cut-out stuck with it. A replaced
-  // asset in an immutably-cached folder MUST get a new filename.
-  //
-  // They deliberately **bleed off the page**: each is inset past the viewport
-  // edge by more than the largest parallax offset, so panning can never drag
-  // an edge into view. Their outer sides are meant to be off-screen.
+  // vertical cuts. `-v2`: /parallax/* is cached immutably, so a replaced
+  // asset MUST get a new filename.
   {
+    key: "corner-l",
     src: "/parallax/coral-foreground-a-left-v2.webp",
-    depth: 76,
-    className: "w-[74%] object-contain object-left-bottom max-[899px]:w-[130%]",
-    style: {
-      transformOrigin: "bottom left",
-      // The bleed must always exceed this layer's own pan range (`depth` px),
-      // or a hard edge slides into view at full pointer deflection. A bare
-      // percentage isn't enough on a narrow window, hence the px floor.
-      left: "calc(-1 * max(10%, 170px))",
-      bottom: "calc(-1 * max(4%, 60px))",
-    },
+    depth: 80,
+    className: "reef-corner-l",
   },
   {
+    key: "corner-r",
     src: "/parallax/coral-foreground-a-right-v2.webp",
-    depth: 82,
-    className: "w-[74%] object-contain object-right-bottom max-[899px]:w-[130%]",
-    style: {
-      transformOrigin: "bottom right",
-      right: "calc(-1 * max(10%, 170px))",
-      bottom: "calc(-1 * max(4%, 60px))",
-    },
+    depth: 86,
+    className: "reef-corner-r",
   },
 ];
 
 export function ParallaxReef() {
-  const layerRefs = useRef<HTMLElement[]>([]);
+  const layerRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const layers = layerRefs.current.filter(Boolean);
     const pointer = { x: 0, y: 0 };
     let lastMove = 0;
 
@@ -136,15 +99,17 @@ export function ParallaxReef() {
     const timer = window.setInterval(() => {
       const idle = Date.now() - lastMove > 2500;
       const s = (Date.now() - t0) / 1000;
-      layers.forEach((el, i) => {
+      // One camera for the whole scene. With nobody at the booth it sways on
+      // a slow Lissajous; every layer shares it, scaled by depth.
+      const cx = idle ? Math.sin(s * 0.13) * 0.7 : pointer.x;
+      const cy = idle ? Math.sin(s * 0.09 + 1.2) * 0.45 : pointer.y;
+      layerRefs.current.forEach((el, i) => {
+        if (!el) return;
         const d = LAYERS[i].depth;
-        // With nobody at the booth the scene drifts on a slow sine instead.
-        const px = idle ? Math.sin(s * 0.14 + i * 0.7) * 0.6 : pointer.x;
-        const py = idle ? Math.cos(s * 0.1 + i * 0.5) * 0.4 : pointer.y;
         gsap.to(el, {
-          x: -px * d,
-          y: -py * d * 0.4,
-          duration: idle ? 1.4 : 1,
+          x: -cx * d,
+          y: -cy * d * 0.45,
+          duration: idle ? 1.6 : 1.1,
           ease: "power2.out",
           overwrite: "auto",
         });
@@ -160,27 +125,25 @@ export function ParallaxReef() {
   return (
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0b3f6b]"
-      // A size container so `.reef-plate-mobile` can size plates off its height.
+      // A size container: the `.reef-*` layout and FishSchool both size off it.
       style={{ containerType: "size" }}
     >
       {LAYERS.map((l, i) => {
         const ref = (el: HTMLElement | null) => {
-          if (el) layerRefs.current[i] = el;
+          layerRefs.current[i] = el;
         };
-        // Just enough overscan to cover the parallax offset — nothing more.
-        const className = `absolute scale-[1.06] will-change-transform ${l.className}`;
+        const className = `absolute will-change-transform ${l.className}`;
         return l.fish ? (
-          <FishSchool key={l.src} ref={ref} className={className} style={l.style} />
+          <FishSchool key={l.key} band={l.fish} ref={ref} className={className} />
         ) : (
           <img
-            key={l.src}
+            key={l.key}
             ref={ref}
             src={l.src}
             alt=""
             aria-hidden="true"
             draggable={false}
             className={className}
-            style={l.style}
           />
         );
       })}

@@ -20,6 +20,11 @@ import { ATLAS, FISH, PLATE } from "./fishSprites";
  * reef is already full when the page opens.
  *
  * This is ambient, like the bubbles: it keeps swimming in Manual mode.
+ *
+ * The school is split into two depth bands so the reef has real depth: the
+ * small fish (`far`) swim behind the reef islands, drawn smaller and slower,
+ * and the big ones (`near`) swim in front of them. ParallaxReef renders one
+ * FishSchool per band, each on its own parallax layer.
  */
 
 /** Deterministic 0..1 noise, so the school looks the same every load. */
@@ -36,12 +41,18 @@ const TAIL_MIN_W = 70;
 const MOBILE_MIN_W = 50;
 /** Share of the sprite width, from the tail end, that wags. */
 const TAIL = 0.34;
+/** Plate px at or above which a fish swims in the near band. */
+const NEAR_MIN_W = 90;
+/** The far band is drawn at this share of plate scale, and swims slower. */
+const FAR_SCALE = 0.72;
 
 export function FishSchool({
+  band,
   ref,
   className,
   style,
 }: {
+  band: "near" | "far";
   ref?: Ref<HTMLDivElement>;
   className?: string;
   style?: CSSProperties;
@@ -51,8 +62,10 @@ export function FishSchool({
   );
 
   // The global reduced-motion rule collapses every animation to its first
-  // frame, which would park every fish off-screen. Show the original plate.
+  // frame, which would park every fish off-screen. Show the original plate,
+  // once: the near band carries it and the far band drops out.
   if (still) {
+    if (band === "far") return null;
     return (
       <img
         ref={ref as Ref<HTMLImageElement>}
@@ -75,14 +88,17 @@ export function FishSchool({
         {
           ...style,
           containerType: "size",
-          "--u": `min(100cqw / ${PLATE.w}, 100cqh / ${PLATE.h})`,
+          "--u": `calc(${band === "far" ? FAR_SCALE : 1} * min(100cqw / ${PLATE.w}, 100cqh / ${PLATE.h}))`,
         } as CSSProperties
       }
     >
       {/* Plate x is unused: the lane decides where along the crossing a fish is. */}
       {FISH.map(([, py, w, h, ax, ay, left], i) => {
+        if (w >= NEAR_MIN_W !== (band === "near")) return null;
         const big = Math.min(w / 200, 1); // 0 small .. 1 largest fish
-        const swim = 44 + big * 46 + rand(i, 1) * 16; // s per crossing
+        // s per crossing; distant fish cover the same screen width more slowly.
+        const swim =
+          (44 + big * 46 + rand(i, 1) * 16) * (band === "far" ? 1.35 : 1);
         const bob = 3.2 + rand(i, 2) * 3;
         const wag = 0.45 + big * 0.7 + rand(i, 3) * 0.2;
         const sprite: CSSProperties = {

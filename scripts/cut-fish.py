@@ -5,7 +5,7 @@ one sheet. This splits it so FishSchool can swim each fish on its own.
 
     python3 scripts/cut-fish.py
 
-Writes public/parallax/fish-atlas-v1.webp and src/components/fishSprites.ts.
+Writes public/parallax/fish-atlas-v3.webp and src/components/fishSprites.ts.
 /parallax/* is cached immutably, so bump the -vN suffix if the output changes.
 """
 import subprocess
@@ -17,7 +17,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "Media/parallax/fish.png"
-ATLAS = ROOT / "public/parallax/fish-atlas-v2.webp"
+ATLAS = ROOT / "public/parallax/fish-atlas-v3.webp"
 TS = ROOT / "src/components/fishSprites.ts"
 
 ALPHA_FLOOR = 48  # the plate carries a faint coloured haze around every fish
@@ -32,7 +32,7 @@ MATCH = 12
 # Fish that face left in the plate. FishSchool swims these right → left, so
 # every fish travels head-first.
 FACING_LEFT = [
-    (309, 90), (344, 161), (347, 206), (566, 253), (558, 313),  # anthias, chromis
+    (309, 90), (347, 206),  # anthias
     (938, 765),  # moorish idol
     (1559, 783),  # clownfish
 ]
@@ -42,6 +42,14 @@ FACING_LEFT = [
 DROP = [
     (475, 261), (623, 592), (554, 601), (1073, 647),  # debris / blobs
     (1532, 693), (233, 777),  # two fish fused together
+    # Out of focus in the photo: a smeared body, washed-out belly, no sharp
+    # eye. Swimming across the reef at full size they read as defects.
+    (344, 161), (1269, 178), (619, 243), (566, 253), (558, 313), (1360, 310),
+    (435, 317), (518, 350), (1456, 350), (1415, 365), (325, 373), (549, 387),
+    (478, 409), (195, 412), (177, 451), (623, 471), (987, 486), (628, 511),
+    (999, 524), (1086, 523), (590, 529), (674, 529), (383, 547), (55, 625),
+    (283, 699), (211, 700), (341, 759), (1260, 794), (659, 798), (1515, 844),
+    (650, 850),
 ]
 
 # Many anthias are photographed nosing up or down; swimming dead level they

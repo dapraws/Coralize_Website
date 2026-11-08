@@ -203,18 +203,91 @@ body.cursor-idle * {
   transform: rotateY(180deg) translateZ(0.01px);
 }
 
-/* Hero reef plates on phones: sized by height (--h), whole and uncropped,
-   centred and always wider than the viewport by more than their parallax
-   range, so no plate edge can slide into view. Not centred with translate:
-   GSAP owns these elements' transforms and resets the `translate` property. */
+/* Hero reef layout (ParallaxReef). Widths are a share of the hero's width,
+   offsets of its height. Plates are never cropped to fit: anything whose art
+   runs to its own edge (rays, ridge, corners) bleeds past the viewport by more
+   than its parallax range instead. Never centre with `translate` here — GSAP
+   owns these elements' transforms and resets that property. */
+.reef-rays {
+  top: 0;
+  left: -4%;
+  width: 108%;
+  max-width: none;
+  height: 82%;
+  object-fit: cover;
+  mix-blend-mode: screen;
+  animation: reef-rays 9s ease-in-out infinite alternate;
+}
+@keyframes reef-rays {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+/* The distant ridge sits low on the horizon, so the top half is open water. */
+.reef-ridge {
+  left: -8%;
+  bottom: -27%;
+  width: 116%;
+  max-width: none;
+}
+.reef-island-l {
+  left: -6%;
+  bottom: -11%;
+  width: 44%;
+}
+.reef-island-r {
+  right: -9%;
+  bottom: -5%;
+  width: 55%;
+}
+.reef-corner-l,
+.reef-corner-r {
+  bottom: calc(-1 * max(6%, 60px));
+  width: 58%;
+  max-width: none;
+}
+.reef-corner-l { left: calc(-1 * max(10%, 170px)); transform-origin: bottom left; }
+.reef-corner-r { right: calc(-1 * max(10%, 170px)); transform-origin: bottom right; }
+.reef-fish {
+  top: 0;
+  height: 100%;
+  left: calc(-1 * max(8%, 150px));
+  width: calc(100% + 2 * max(8%, 150px));
+  max-width: none;
+}
+
+/* Phones: a 16:9 plate at full width is only ~22% of a portrait hero, so the
+   reef sat as a thin strip at the very bottom. Below 900px the plates are
+   sized by height (`--h`) and placed by their own width (`--w`), whole,
+   bleeding past the sides rather than cropped. */
 @media (max-width: 899px) {
-  .reef-plate-mobile {
-    --w: max(100cqw + 160px, var(--h) * 1672 / 941);
+  .reef-ridge,
+  .reef-island-l,
+  .reef-island-r {
+    height: var(--h);
     width: var(--w);
     max-width: none;
-    left: calc(50% - var(--w) / 2);
-    right: auto;
   }
+  .reef-ridge {
+    --h: 70cqh;
+    --w: max(100cqw + 160px, var(--h) * 1672 / 941);
+    left: calc(50% - var(--w) / 2);
+    bottom: -6%;
+  }
+  .reef-island-r {
+    --h: 56cqh;
+    --w: calc(var(--h) * 1672 / 941);
+    left: calc(50% - var(--w) / 2 + 12cqw);
+    right: auto;
+    bottom: -3%;
+  }
+  .reef-island-l {
+    --h: 38cqh;
+    --w: var(--h);
+    left: calc(-0.22 * var(--w));
+    bottom: -4%;
+  }
+  .reef-corner-l,
+  .reef-corner-r { width: 120%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

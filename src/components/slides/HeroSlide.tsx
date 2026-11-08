@@ -23,7 +23,7 @@ export function HeroSlide({
 
       {/* Contrast for the copy only — a soft vertical scrim, so the reef keeps
           its colour everywhere the text isn't. */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,26,54,0.55)_0%,rgba(4,26,54,0.34)_30%,rgba(4,26,54,0.46)_62%,rgba(4,26,54,0.72)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,26,54,0.44)_0%,rgba(4,26,54,0.22)_30%,rgba(4,26,54,0.4)_62%,rgba(4,26,54,0.72)_100%)]" />
       {/* A column of shade down the middle where all the copy sits. */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_54%_78%_at_50%_54%,rgba(4,26,54,0.70),rgba(4,26,54,0.34)_58%,transparent_82%)]" />
 
